@@ -4,11 +4,11 @@
              label-width="0px"
              class="card-box login-form">
       <h3 class="title">后台管理系统</h3>
-      <el-form-item prop="username">
+      <el-form-item prop="userId">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user"/>
         </span>
-        <el-input v-model="loginForm.username" autoComplete="on"/>
+        <el-input v-model="loginForm.userId" autoComplete="on"/>
       </el-form-item>
       <el-form-item prop="password">
         <span class="svg-container">
@@ -31,11 +31,11 @@ export default {
   data() {
     return {
       loginForm: {
-        username: 'admin',
+        userId: 'admin',
         password: '123456'
       },
       loginRules: {
-        username: [{required: true, trigger: 'blur', message: "请输入用户名"}],
+        userId: [{required: true, trigger: 'blur', message: "请输入用户名"}],
         password: [{required: true, trigger: 'blur', message: "请输入密码"}]
       },
       loading: false
