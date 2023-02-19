@@ -81,9 +81,9 @@
           url: "/article/listArticle",
           method: "get",
           params: this.listQuery
-        }).then(data => {
+        }).then(res => {
           this.listLoading = false;
-          this.list = data.list;
+          this.list = res.data.list;
           this.totalCount = data.totalCount;
         })
       },
