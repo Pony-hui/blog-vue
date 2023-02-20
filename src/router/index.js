@@ -89,5 +89,20 @@ export const asyncRouterMap = [
       }
     ]
   },
+  {
+    path: '/log',
+    component: Layout,
+    // redirect: '/log/menuList',
+    name: '系统监控',
+    meta: {title: '系统监控', icon: 'tree'},
+    children: [
+      {
+        path: 'logList',
+        name: '系统日志',
+        component: _import('log/index'),
+        meta: {title: '系统日志', icon: 'articleList'},
+      }
+    ]
+  },
   {path: '*', redirect: '/404', hidden: true}
 ]
