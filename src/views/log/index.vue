@@ -61,6 +61,7 @@
         <div style="margin-top: 15px;">
             <el-table
                 :data="logList"
+                border
                 style="width: 100%">
                 <el-table-column 
                     align="center"
@@ -146,8 +147,8 @@
                     params: this.pageInfo
                 }).then(res => {
                     console.log(res);
-                    this.logList = res.data.logList.list;
-                    this.total = res.data.logList.total;
+                    this.logList = res.data.list;
+                    this.total = res.data.total;
                 })
             }
         },

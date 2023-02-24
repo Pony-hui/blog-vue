@@ -85,7 +85,7 @@ export const asyncRouterMap = [
         name: '菜单列表',
         component: _import('menu/menu'),
         meta: {title: '菜单列表', icon: 'articleList'},
-        // menu: 'article'
+        menu: 'menu'
       }
     ]
   },
@@ -93,14 +93,32 @@ export const asyncRouterMap = [
     path: '/log',
     component: Layout,
     // redirect: '/log/menuList',
-    name: '系统监控',
-    meta: {title: '系统监控', icon: 'tree'},
+    name: '系统日志',
+    meta: {title: '系统日志', icon: 'tree'},
     children: [
       {
-        path: 'logList',
-        name: '系统日志',
+        path: 'loginLog',
+        name: '登录日志',
         component: _import('log/index'),
-        meta: {title: '系统日志', icon: 'articleList'},
+        meta: {title: '登录日志', icon: 'articleList'},
+      },
+      {
+        path: 'optLog',
+        name: '操作日志',
+        component: _import('log/index'),
+        meta: {title: '操作日志', icon: 'articleList'},
+      },
+      {
+        path: 'visitLog',
+        name: '访问日志',
+        component: _import('log/index'),
+        meta: {title: '访问日志', icon: 'articleList'},
+      },
+      {
+        path: 'errorLog',
+        name: '异常日志',
+        component: _import('log/index'),
+        meta: {title: '异常日志', icon: 'articleList'},
       }
     ]
   },

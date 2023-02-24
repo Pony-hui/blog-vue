@@ -10,24 +10,28 @@
     </div>
     <el-table :data="list" v-loading="listLoading"  border fit
               highlight-current-row>
-      <el-table-column align="center" label="序号" width="80">
+      <el-table-column align="center" label="序号" width="50">
         <template slot-scope="scope">
           <span v-text="getIndex(scope.$index)"> </span>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="昵称" prop="nickname" style="width: 60px;"></el-table-column>
-      <el-table-column align="center" label="用户名" prop="username" style="width: 60px;"></el-table-column>
-      <el-table-column align="center" label="角色" width="200">
+      <el-table-column align="center" label="账号" prop="userId" width="80"></el-table-column>
+      <el-table-column align="center" label="昵称" prop="nickName" width="120"></el-table-column>
+      <el-table-column align="center" label="角色" prop="roleId" width="100" :formatter="roleConvert">
+      </el-table-column>
+      <el-table-column align="center" label="最近修改时间" prop="updateTime" width="170"></el-table-column>
+      <el-table-column align="center" label="上次登陆时间" prop="lastLoginTime" width="170"></el-table-column>
+      <el-table-column align="center" label="退出时间" prop="lastLogoutTime" width="170"></el-table-column>
+      <el-table-column align="center" label="状态" prop="loginStatus" width="80">
         <template slot-scope="scope">
-          <div style="margin-right: 4px;display: inline-block" v-for="i in scope.row.roles">
-            <el-tag type="success" v-text="i.roleName" v-if="i.roleId===1"></el-tag>
-            <el-tag type="primary" v-text="i.roleName" v-else></el-tag>
+          <div>
+            <el-tag type="primary" v-if="scope.row.loginStatus === 0">在线</el-tag>
+            <el-tag type="danger" v-else>离线</el-tag>
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="创建时间" prop="createTime" width="170"></el-table-column>
-      <el-table-column align="center" label="最近修改时间" prop="updateTime" width="170"></el-table-column>
-      <el-table-column align="center" label="管理" width="220" >
+
+      <el-table-column align="center" label="管理"> 
         <template slot-scope="scope">
           <el-button type="primary" icon="edit" @click="showUpdate(scope.$index)" v-permission="'user:update'">修改</el-button>
           <el-button type="danger" icon="delete" v-if="scope.row.userId!==userId "
@@ -94,7 +98,7 @@ export default {
       listLoading: false,//数据加载等待动画
       listQuery: {
         pageNum: 1,//页码
-        pageRow: 50,//每页条数
+        pageRow: 10,//每页条数
       },
       roles: [],//角色列表
       dialogStatus: 'create',
@@ -128,8 +132,8 @@ export default {
       this.api({
         url: "/user/getAllRoles",
         method: "get"
-      }).then(data => {
-        this.roles = data.list;
+      }).then(res => {
+        this.roles = res.info.list;
       })
     },
     getList() {
@@ -139,11 +143,24 @@ export default {
         url: "/user/list",
         method: "get",
         params: this.listQuery
-      }).then(data => {
+      }).then(res => {
         this.listLoading = false;
-        this.list = data.list;
-        this.totalCount = data.totalCount;
+        this.list = res.data.list;
+        this.totalCount = res.data.total;
       })
+    },
+    roleConvert(row, column, cellValue){
+        if(cellValue === 101 ){
+          return "管理员";
+        }
+        if(cellValue === 102 ){
+          return "博主";
+        }
+        if(cellValue === 103 ){
+          return "开发人员";
+        }else {
+          return "普通用户";
+        }
     },
     handleSizeChange(val) {
       //改变每页数量
