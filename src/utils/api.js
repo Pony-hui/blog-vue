@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {Message} from 'element-ui'
-import {getToken} from '@/utils/auth'
+import {getToken , clearStorage} from '@/utils/auth'
 import store from '../store'
 // 创建axios实例
 const service = axios.create({
@@ -50,9 +50,12 @@ service.interceptors.response.use(
   error => {
     console.error('err' + error)// for debug
     Message({
-      message: error.message,
+      message: "系统异常，请重新登录",
       type: 'error',
       duration: 3 * 1000
+    })
+    store.dispatch('FedLogOut').then(() => {
+      location.reload()// 为了重新实例化vue-router对象 避免bug
     })
     return Promise.reject(error)
   }
