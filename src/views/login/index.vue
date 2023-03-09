@@ -17,6 +17,16 @@
         <el-input type="password" @keyup.enter.native="handleLogin" v-model="loginForm.password"
                   autoComplete="on"></el-input>
       </el-form-item>
+      <el-form-item prop="vertifyCode">
+        <el-input 
+        v-model="loginForm.vertifyCode" 
+        placeholder="请输入验证码"
+        style="width: 223px"
+        >
+        </el-input>
+        <span style="padding: 13px 13px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="isShow" @click="countDown()">{{ vertifyButton }}</span>
+        <span style="padding: 13px 36px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="!isShow">{{ count }}s</span>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleLogin">
           登录
@@ -30,9 +40,14 @@ export default {
   name: 'login',
   data() {
     return {
+      vertifyButton: '获取验证码',
+      isShow: true,
+      count: '',
+      timer: null,
       loginForm: {
         userId: 'admin',
-        password: '123456'
+        password: '123456',
+        vertifyCode: ''
       },
       loginRules: {
         userId: [{required: true, trigger: 'blur', message: "请输入用户名"}],
@@ -42,6 +57,35 @@ export default {
     }
   },
   methods: {
+    //点击按钮后倒计时显示
+    countDown(){
+      const TIME_COUNT = 60;
+      if(!this.timer){
+        this.count = TIME_COUNT;
+        this.isShow = false;
+        this.timer = setInterval( () => {
+          if(this.count > 0 && this.count <= TIME_COUNT){
+            this.count--;
+          }else {
+            this.isShow = true;
+            clearInterval(this.timer);
+            this.timer = null;
+            this.vertifyButton = '重新获取';
+          }
+        } , 1000);
+      }
+
+      createVertifyCode();  
+    },
+    //发送验证码请求
+    createVertifyCode(){
+      this.api({
+        url: "",
+        method: "GET"
+      }).then(res => {
+          
+      })
+    },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
@@ -71,7 +115,7 @@ $light_gray: rgb(88, 85, 85);
   @include relative;
   height: 100vh;
   // background-color: $bg;
-  background-image: url('../../assets/login.jpg');
+  background-image: url('../../assets/background.jpg');
   background-position:center;
 
   input:-webkit-autofill {
@@ -85,7 +129,7 @@ $light_gray: rgb(88, 85, 85);
     -webkit-appearance: none;
     border-radius: 0px;
     padding: 12px 5px 12px 15px;
-    color: $light_gray;
+    color: rgb(255, 255, 255);
     height: 47px;
   }
 
