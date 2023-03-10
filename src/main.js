@@ -10,10 +10,13 @@ import '@/icons' // icon
 import '@/permission' // 权限
 import {default as api} from './utils/api'
 import directives from "@/directives";
+import mavonEditor  from 'mavon-editor';
+import 'mavon-editor/dist/css/index.css';
 
 import {hasPermission} from "./utils/hasPermission";
 Vue.use(ElementUI);
-Vue.use(ElementUI, {locale})
+Vue.use(ElementUI, {locale});
+Vue.use(mavonEditor)
 Vue.prototype.api = api
 //全局的常量
 Vue.prototype.hasPerm = hasPermission

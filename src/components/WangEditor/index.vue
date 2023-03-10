@@ -129,8 +129,9 @@
   
   <style lang="css">
     .editor {
-      width: 100%;
-      margin: 0 auto;
+      width: 49%;
+      margin: 0 0;
+      display: inline-block;
       position: relative;
       z-index: 0;
     }
@@ -139,7 +140,7 @@
     }
     .text {
       border: 1px solid #ccc;
-      min-height: 500px;
+      min-height: 331px;
     }
   </style>
   

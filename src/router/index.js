@@ -74,21 +74,42 @@ export const asyncRouterMap = [
     ]
   },
   {
-    path: '/menu',
+    path: '/sys',
     component: Layout,
-    redirect: '/menu/menuList',
-    name: '菜单管理',
-    meta: {title: '菜单管理', icon: 'tree'},
+    // redirect: '/log/menuList',
+    name: '系统管理',
+    meta: {title: '系统管理', icon: 'tree'},
     children: [
       {
-        path: 'menu',
-        name: '菜单列表',
+        path: 'sysDic',
+        name: '业务字典',
         component: _import('menu/menu'),
-        meta: {title: '菜单列表', icon: 'articleList'},
-        menu: 'menu'
-      }
+        meta: {title: '业务字典', icon: 'articleList'},
+      },
+      {
+        path: 'sysMenu',
+        name: '菜单管理',
+        component: _import('menu/menu'),
+        meta: {title: '菜单管理', icon: 'articleList'},
+      },
     ]
   },
+  // {
+  //   path: '/menu',
+  //   component: Layout,
+  //   redirect: '/menu/menuList',
+  //   name: '菜单管理',
+  //   meta: {title: '菜单管理', icon: 'tree'},
+  //   children: [
+  //     {
+  //       path: 'menu',
+  //       name: '菜单列表',
+  //       component: _import('menu/menu'),
+  //       meta: {title: '菜单列表', icon: 'articleList'},
+  //       menu: 'menu'
+  //     }
+  //   ]
+  // },
   {
     path: '/log',
     component: Layout,

@@ -24,8 +24,8 @@
         style="width: 223px"
         >
         </el-input>
-        <span style="padding: 13px 13px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="isShow" @click="countDown()">{{ vertifyButton }}</span>
-        <span style="padding: 13px 36px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="!isShow">{{ count }}s</span>
+        <span style="padding: 13px 13px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="isShow" @click="countDown()">获取验证码</span>
+        <span style="padding: 13px 35px;border-radius: 3px; background-color: #FFF;cursor:pointer" v-show="!isShow">{{ count }}s</span>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleLogin">
@@ -36,11 +36,11 @@
   </div>
 </template>
 <script>
+import {Message} from 'element-ui'
 export default {
   name: 'login',
   data() {
     return {
-      vertifyButton: '获取验证码',
       isShow: true,
       count: '',
       timer: null,
@@ -51,7 +51,8 @@ export default {
       },
       loginRules: {
         userId: [{required: true, trigger: 'blur', message: "请输入用户名"}],
-        password: [{required: true, trigger: 'blur', message: "请输入密码"}]
+        password: [{required: true, trigger: 'blur', message: "请输入密码"}],
+        // vertifyCode: [{required: true, trigger: 'blur', message: "请输入验证码"}]
       },
       loading: false
     }
@@ -59,31 +60,34 @@ export default {
   methods: {
     //点击按钮后倒计时显示
     countDown(){
-      const TIME_COUNT = 60;
+      const TIME_COUNT = 120;
+      this.createVertifyCode();
       if(!this.timer){
         this.count = TIME_COUNT;
         this.isShow = false;
         this.timer = setInterval( () => {
           if(this.count > 0 && this.count <= TIME_COUNT){
             this.count--;
+            this.count = this.count < 10 ? "0" + this.count : this.count;
           }else {
             this.isShow = true;
             clearInterval(this.timer);
             this.timer = null;
-            this.vertifyButton = '重新获取';
           }
         } , 1000);
-      }
-
-      createVertifyCode();  
+      } 
     },
     //发送验证码请求
     createVertifyCode(){
       this.api({
-        url: "",
+        url: "/login/generateVertifyCode",
         method: "GET"
       }).then(res => {
-          
+        Message({
+        message: res.msg,
+        type: 'success',
+        duration: 3000,
+      });
       })
     },
     handleLogin() {
