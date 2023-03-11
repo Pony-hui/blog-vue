@@ -149,21 +149,25 @@ export default {
           // async: false,
           data: this.article
         }).then(res=> {
+          //发布后清空article对象
+          if(!(this.article.isIssue == 1 && this.article.isDelayIssue == 1)){
+            for(let key in this.article){
+              this.article[key]  = ''
+            }
+          }
           this.$message({
-          showClose: true,
-          message: msg,
-          type: 'success'
-        });
+            showClose: true,
+            message: msg,
+            type: 'success'
+          });
         })
       },
       //发布文章
-      async publishArticle(){
+      publishArticle(){
         this.article.issueTime = new Date();
-        await this.addArticle("发布成功");
-        //发布后清空article对象
-        for(let key in this.article){
-          this.article[key]  = ''
-        }
+        this.article.isIssue = 0;
+        this.article.isDelayIssue = 1;
+        this.addArticle("发布成功");
       },
       //定时发布
       vertifyIssueTime(){
@@ -192,15 +196,12 @@ export default {
         this.article.isDelayIssue = 0;
         this.article.isIssue = 1;
         this.addArticle("定时发布成功");
-        //发布后清空article对象
-        for(let key in this.article){
-            this.article[key]  = ''
-          }
         this.timingDialog = false;
       },
       saveDraft(){
         this.article.isIssue = 1;
-        this.addArticle(this.article , "保存成功");
+        this.article.isDelayIssue = 1;
+        this.addArticle("保存成功");
       }
     }
 }
