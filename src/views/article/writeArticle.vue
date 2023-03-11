@@ -9,19 +9,19 @@
         <el-row :gutter="20">
           <el-col :span="12">        
             <el-form-item label="文章标题" prop="title">
-              <el-input v-model="article.title" placeholder="请输入标题" style="width: 92%"></el-input>
+              <el-input v-model="article.articleTitle" placeholder="请输入标题" style="width: 92%"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">        
             <el-form-item label="作者" prop="author">
-              <el-input v-model="article.author" placeholder="请输入作者" style="width: 92%;"></el-input>
+              <el-input v-model="article.articleAuthor" placeholder="请输入作者" style="width: 92%;"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-col :span="24">
           <el-form-item label="">
-            <mavon-editor v-model="article.artiContent"/>
+            <mavon-editor v-model="article.articleContent"/>
           </el-form-item>
         </el-col>
 
@@ -71,7 +71,7 @@
       <div style="text-align: center;">
         <el-button type="primary" @click="publishArticle()">发布文章</el-button>
         <el-button type="warning" @click=" timingDialog = true">定时发布</el-button>
-        <el-button plain @click="publishArticle()">保存草稿</el-button>
+        <el-button plain @click="saveDraft()">保存草稿</el-button>
       </div>
 
       <el-dialog
@@ -81,7 +81,7 @@
         <span slot="">
           <p><span style="color: red">注：</span>发布时间不得小于当前时间，也不得大于3天</p>
           <el-date-picker
-            v-model="issueTime"
+            v-model="article.issueTime"
             type="datetime"
             placeholder="请选择发布时间"
             align="right"
@@ -100,6 +100,7 @@
 <script>
 import WangEditor from "@/components/WangEditor";
 import { Message } from 'element-ui';
+import qs from 'qs';
 
 export default {
    components: {
@@ -109,7 +110,6 @@ export default {
       return {
         isClear: false,
         timingDialog: false,    //定时发布弹窗
-        issueTime: '',        //发布时间
         articleTypeList: [{
           value: '1',
           label: 'Java基础'
@@ -130,52 +130,77 @@ export default {
           label: '前端框架'
         }],
         article:{
-          title: '',
-          author: '',
-          artiContent: '',
-          type: '',
-          tag: []
-        },
-
-          
+            articleTitle: '',
+            articleAuthor: '',
+            articleContent: '',
+            userId: '',
+            issueTime: '',
+            isDelayIssue: '1',
+            isIssue: '0'
+          },
         }
       },
     methods: {
-      //发布时间校验
+      //保存文章请求
+       addArticle(msg){
+         this.api({
+          method: 'post',
+          url: '/article/addArticle',
+          // async: false,
+          data: this.article
+        }).then(res=> {
+          this.$message({
+          showClose: true,
+          message: msg,
+          type: 'success'
+        });
+        })
+      },
+      //发布文章
+      async publishArticle(){
+        this.article.issueTime = new Date();
+        await this.addArticle("发布成功");
+        //发布后清空article对象
+        for(let key in this.article){
+          this.article[key]  = ''
+        }
+      },
+      //定时发布
       vertifyIssueTime(){
-        if(this.issueTime < new Date()){
+        var article = this.article;
+        if(article.issueTime < new Date()){
           Message({
             showClose: true,
-            message: '发布时间不得小于当前时间',
+            message: '发布时间不得小于当前时间！',
             type: 'warning',
             duration: 3000
           })
           return;
         }
+        var maximumTime = new Date();
+        maximumTime = maximumTime.setDate(maximumTime.getDate() + 3);
+        maximumTime = new Date(maximumTime);
+        if(article.issueTime > maximumTime){
+          Message({
+            showClose: true,
+            message: '发布时间不得大于三天！',
+            type: 'warning',
+            duration: 3000
+          })
+          return;
+        }
+        this.article.isDelayIssue = 0;
+        this.article.isIssue = 1;
+        this.addArticle("定时发布成功");
+        //发布后清空article对象
+        for(let key in this.article){
+            this.article[key]  = ''
+          }
         this.timingDialog = false;
       },
-      //发布文章
-      publishArticle(){
-        this.api({
-          method: 'post',
-          url: '/article/addArticle',
-          data: {
-            title: this.title,
-            artiContent: this.artiContent
-          }
-        }).then(res=> {
-          this.addMessage(res);
-        }),err=>{
-          
-        }
-      },
-      //成功消息提示框
-      addMessage(message){
-        this.$message({
-          showClose: true,
-          message: message,
-          type: 'success'
-        });
+      saveDraft(){
+        this.article.isIssue = 1;
+        this.addArticle(this.article , "保存成功");
       }
     }
 }
