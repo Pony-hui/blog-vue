@@ -29,7 +29,7 @@
           <el-col :span="12">
             <el-form-item label="文章分类">
               <el-select v-model="article.typeId" placeholder="请选择分类" style="width: 92%;" @change="getTypeName">
-                <el-option v-for="item in articleTypeList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                <el-option v-for="item in articleTypeList" :key="item.typeId" :label="item.typeName" :value="item.typeId"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -107,25 +107,7 @@ export default {
       return {
         isClear: false,
         timingDialog: false,    //定时发布弹窗
-        articleTypeList: [{
-          value: '100001',
-          label: 'Java基础'
-        }, {
-          value: '2',
-          label: '框架源码'
-        },{
-          value: '3',
-          label: '微服务'
-        }, {
-          value: '4',
-          label: '中间件'
-        }, {
-          value: '5',
-          label: '计算机基础'
-        }, {
-          value: '6',
-          label: '前端框架'
-        }],
+        articleTypeList: [],
         article:{
             articleTitle: '',
             articleAuthor: '',
@@ -144,14 +126,29 @@ export default {
           }
         }
       },
+      created() {
+        this.getArticleTypeList();
+      },
     methods: {
       getTypeName(e){
         this.articleTypeList.map((item) => {
-          if(item.value == e){
-            this.article.typeName = item.label;
+          if(item.typeId == e){
+            this.article.typeName = item.typeName;
           }
         })
       },
+      getArticleTypeList(){
+                this.api({
+                    url: "/article/type/articleTypeList",
+                    method: "get",
+                    params: {
+                      pageNum: 1,//页码
+                      pageRow: 20,//每页条数
+                    }
+                }).then(res => {
+                    this.articleTypeList = res.data.list;
+                })
+        },
       //保存文章请求
        addArticle(msg){
         this.$refs.article.validate(valid => {
