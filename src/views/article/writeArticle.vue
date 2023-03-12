@@ -1,18 +1,18 @@
 <template>
   <div >
-    <div class="article">
+    <div style="padding-left: 30px;">
     <div class="arti-head">
       <h3>发布文章</h3>
     </div>
     <div>
-      <el-form :model="article" style="width: 99%;">
+      <el-form :model="article" ref="article" :rules="articleRules" style="width: 99%;">
         <el-row :gutter="20">
           <el-col :span="12">        
             <el-form-item label="文章标题" prop="title">
               <el-input v-model="article.articleTitle" placeholder="请输入标题" style="width: 92%"></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="12">        
+          <el-col :span="12">
             <el-form-item label="作者" prop="author">
               <el-input v-model="article.articleAuthor" placeholder="请输入作者" style="width: 92%;"></el-input>
             </el-form-item>
@@ -28,7 +28,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="文章分类">
-              <el-select v-model="article.type" placeholder="请选择分类" style="width: 92%;">
+              <el-select v-model="article.typeId" placeholder="请选择分类" style="width: 92%;" @change="getTypeName">
                 <el-option v-for="item in articleTypeList" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </el-form-item>
@@ -54,8 +54,6 @@
           </el-col>
         </el-row>
       </el-form>
-
-
     </div>
 
     <div style="margin-top: 23px;">
@@ -69,7 +67,7 @@
     </div>
 
       <div style="text-align: center;">
-        <el-button type="primary" @click="publishArticle()">发布文章</el-button>
+        <el-button type="primary" @click.native.prevent="publishArticle()">发布文章</el-button>
         <el-button type="warning" @click=" timingDialog = true">定时发布</el-button>
         <el-button plain @click="saveDraft()">保存草稿</el-button>
       </div>
@@ -100,7 +98,6 @@
 <script>
 import WangEditor from "@/components/WangEditor";
 import { Message } from 'element-ui';
-import qs from 'qs';
 
 export default {
    components: {
@@ -111,7 +108,7 @@ export default {
         isClear: false,
         timingDialog: false,    //定时发布弹窗
         articleTypeList: [{
-          value: '1',
+          value: '100001',
           label: 'Java基础'
         }, {
           value: '2',
@@ -133,33 +130,58 @@ export default {
             articleTitle: '',
             articleAuthor: '',
             articleContent: '',
+            typeId: '',
+            typeName: '',
             userId: '',
             issueTime: '',
             isDelayIssue: '1',
             isIssue: '0'
           },
+          articleRules:{
+            articleTitle: [{required: true, trigger: 'blur', message: "请输入文章标题"}],
+            articleAuthor: [{required: true, trigger: 'blur', message: "请输入作者"}],
+            typeId: [{required: true, trigger: 'blur', message: "请选择文章分类"}]
+          }
         }
       },
     methods: {
+      getTypeName(e){
+        this.articleTypeList.map((item) => {
+          if(item.value == e){
+            this.article.typeName = item.label;
+          }
+        })
+      },
       //保存文章请求
        addArticle(msg){
-         this.api({
-          method: 'post',
-          url: '/article/addArticle',
-          // async: false,
-          data: this.article
-        }).then(res=> {
-          //发布后清空article对象
-          if(!(this.article.isIssue == 1 && this.article.isDelayIssue == 1)){
-            for(let key in this.article){
-              this.article[key]  = ''
-            }
+        this.$refs.article.validate(valid => {
+          if(valid) {
+            this.api({
+              method: 'post',
+              url: '/article/addArticle',
+              // async: false,
+              data: this.article
+            }).then(res=> {
+              //发布后清空article对象
+              if(!(this.article.isIssue == 1 && this.article.isDelayIssue == 1)){
+                for(let key in this.article){
+                  this.article[key]  = ''
+                }
+              }
+              this.$message({
+                showClose: true,
+                message: msg,
+                type: 'success'
+              });
+            })
+          }else{
+            this.$message({
+                showClose: true,
+                message: "碧桃",
+                type: 'error'
+              });
+            return false;
           }
-          this.$message({
-            showClose: true,
-            message: msg,
-            type: 'success'
-          });
         })
       },
       //发布文章
@@ -208,9 +230,6 @@ export default {
 </script>
 
 <style scoped>
-.article{
-  padding-left: 30px;
-}
 .arti-head{
   border-left: 4px #0081FF solid;
 }
