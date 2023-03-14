@@ -2,59 +2,110 @@
   <div class="app-container">
     <div class="filter-container">
     </div>
-    <el-table :data="list" v-loading="listLoading"  border fit
-              highlight-current-row>
-      <el-table-column align="center" label="序号" width="80">
-        <template slot-scope="scope">
-          <span v-text="getIndex(scope.$index)"> </span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" prop="content" label="文章" style="width: 60px;"></el-table-column>
-      <el-table-column align="center" prop="createTime" label="创建时间" width="170"/>
-      <el-table-column align="center" prop="updateTime" label="最近修改时间" width="170"/>
-      <el-table-column align="center" label="管理" width="200" >
-        <template slot-scope="scope">
-          <el-button type="primary" icon="edit" @click="showUpdate(scope.$index)"  v-permission="'article:update'">修改</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="listQuery.pageNum"
-      :page-size="listQuery.pageRow"
-      :total="totalCount"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper">
-    </el-pagination>
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form class="small-space" :model="tempArticle" label-position="left" label-width="60px"
-               style='width: 500px; margin-left:50px;'>
-        <el-form-item label="文章">
-          <el-input type="textarea" style="width:100%" show-word-limit v-model="tempArticle.content"  maxlength="100">
-          </el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button v-if="dialogStatus==='create'" type="success" @click="createArticle">创 建</el-button>
-        <el-button type="primary" v-else @click="updateArticle">修 改</el-button>
+    <div style="margin-top: 0px;">
+        <el-table
+            :key="itemKey"
+            :data="articleList"
+            border
+            style="width: 100%">
+            <el-table-column 
+                align="center"
+                type="selection"
+                label="序号"
+                width="50">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="articleTitle"
+                label="文章标题"
+                show-overflow-tooltip='true'
+                width="180">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="articleAuthor"
+                label="作者"
+                show-overflow-tooltip='true'
+                width="180">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="articleInfo"
+                label="文章描述"
+                show-overflow-tooltip='true'
+                width="180">
+            </el-table-column>
+            <!-- <el-table-column
+                align="center"
+                prop="articleContent"
+                show-overflow-tooltip='true'
+                label="文章正文"
+                width="240">
+            </el-table-column> -->
+            <el-table-column
+                align="center"
+                prop="typeName"
+                label="文章分类"
+                width="120">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="issueStatus"
+                label="发布状态"
+                width="120">
+              <template slot-scope="scope">
+                <el-tag type="primary" v-if="scope.row.issueStatus === 1">已发布</el-tag>
+                <el-tag type="warning" v-else-if="scope.row.issueStatus == 2">定时发布</el-tag>
+                <el-tag type="info" v-else>草稿</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="issueTime"
+                label="发布时间"
+                width="220">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="createTime"
+                label="保存时间"
+                width="220">
+            </el-table-column>
+            <el-table-column
+                align="center"
+                prop="updateTime"
+                label="更新时间"
+                width="220">
+            </el-table-column>
+            <el-table-column label="操作" align="center" width="180" fixed="right">
+                <template slot-scope="scope">
+                  <span style="color: #409EFF;cursor: pointer;font-size: 15px;" @click="articleDetail(scope.row)">查看正文</span>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page=pageInfo.pageNum
+                :page-sizes="[10, 20, 30, 50 , 100]"
+                :page-size= pageInfo.pageRow
+                layout="total, sizes, prev, pager, next, jumper"
+                :total= total>
+            </el-pagination>
       </div>
-    </el-dialog>
   </div>
 </template>
 <script>
   export default {
     data() {
       return {
-        totalCount: 0, //分页组件--数据总条数
-        list: [],//表格的数据
         listLoading: false,//数据加载等待动画
-        listQuery: {
-          pageNum: 1,//页码
-          pageRow: 50,//每页条数
-          name: ''
+        articleList: [],//表格的数据
+        pageInfo: {
+            pageNum: 1,//页码
+            pageRow: 10,//每页条数
         },
+        total: '',
         dialogStatus: 'create',
         dialogFormVisible: false,
         textMap: {
@@ -68,39 +119,33 @@
       }
     },
     created() {
-      this.getList();
+      this.getAllArticle();
     },
     methods: {
-      getList() {
-        //查询列表
-        if (!this.hasPerm('article:list')) {
-          return
-        }
-        this.listLoading = true;
-        this.api({
-          url: "/article/listArticle",
-          method: "get",
-          params: this.listQuery
-        }).then(res => {
-          this.listLoading = false;
-          this.list = res.data.list;
-          this.totalCount = data.totalCount;
-        })
-      },
       handleSizeChange(val) {
-        //改变每页数量
-        this.listQuery.pageRow = val
-        this.handleFilter();
+        this.pageInfo.pageRow = val;
+        this.getAllArticle();
       },
       handleCurrentChange(val) {
-        //改变页码
-        this.listQuery.pageNum = val
-        this.getList();
+        this.pageInfo.pageNum = val;
+        this.getAllArticle();
       },
-      handleFilter() {
-        //改变了查询条件,从第一页开始查询
-        this.listQuery.pageNum = 1
-        this.getList()
+
+      getAllArticle() {
+        //查询列表
+        // if (!this.hasPerm('article:list')) {
+        //   return
+        // }
+        this.listLoading = true;
+        this.api({
+          url: "/article/getAllArticle",
+          method: "get",
+          params: this.pageInfo
+        }).then(res => {
+          this.listLoading = false;
+          this.articleList = res.data.list;
+          this.total = res.data.total;
+        })
       },
       getIndex($index) {
         //表格序号
@@ -144,3 +189,11 @@
     }
   }
 </script>
+
+<style scoped>
+.el-tooltip__popper {
+  max-width: 360px;
+  background-color: white;
+}
+
+</style>

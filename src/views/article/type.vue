@@ -97,11 +97,11 @@
                 </el-table-column>
                 <el-table-column
                     align="center"
-                    prop="articleNum"
+                    prop="articleCount"
                     label="文章数量"
-                    width="240">
+                    width="180">
                     <template slot-scope="scope">
-                        <span style="color: #409EFF;cursor: pointer;" >{{ scope.row.typeId }}</span>
+                        <span title="点击查看文章列表" style="color: #409EFF;cursor: pointer;" >{{ scope.row.articleCount }}篇</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" width="240">
@@ -185,6 +185,7 @@ import {Message} from 'element-ui'
                 this.pageInfo.pageNum = val;
                 this.getArticleTypeList();
             },
+            //获取类别列表
             getArticleTypeList(){
                 this.api({
                     url: "/article/type/articleTypeList",
@@ -195,15 +196,17 @@ import {Message} from 'element-ui'
                     this.total = res.data.total;
                 })
             },
+            //修改类别
             editArticleType(articleType){
                 this.editTypeDialogTitle = '修改类目';
                 this.editTypeDialog = true;
                 this.typeAxiosUrl = "/article/type/editArticleType";
-                for(let key in articleType) {
-                    this.articleTypeForm[key] = articleType[key];
-                }
-                this.itemKey = Math.random();
+                this.articleTypeForm = JSON.parse(JSON.stringify(articleType));
+                // for(let key in articleType) {
+                //     this.articleTypeForm[key] = articleType[key];
+                // }
             },
+            //新增类别
             addArticleType(){
                 this.editTypeDialogTitle = '新增类目';
                 this.editTypeDialog = true;
@@ -212,12 +215,14 @@ import {Message} from 'element-ui'
                     this.articleTypeForm[key] = '';
                 }
             },
+            //修改或新增类目的请求
             typeAxios(){
                 this.api({
                     url: this.typeAxiosUrl,
                     method: "post",
                     data: this.articleTypeForm
                 }).then(res => {
+                    //重新发送请求，刷新页面
                     this.getArticleTypeList();
                     Message({
                         showClose: true,

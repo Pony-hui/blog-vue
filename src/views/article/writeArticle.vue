@@ -9,15 +9,27 @@
         <el-row :gutter="20">
           <el-col :span="12">        
             <el-form-item label="文章标题" prop="title">
-              <el-input v-model="article.articleTitle" placeholder="请输入标题" style="width: 92%"></el-input>
+              <el-input v-model="article.articleTitle" placeholder="请输入标题" style="width: 90%"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="作者" prop="author">
-              <el-input v-model="article.articleAuthor" placeholder="请输入作者" style="width: 92%;"></el-input>
+              <el-input v-model="article.articleAuthor" placeholder="请输入作者" style="width: 90%;"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
+
+        <el-form-item label="文章简介">
+          <el-input
+            type="textarea"
+            placeholder="请输入文章简介"
+            v-model="article.articleInfo"
+            style="width: 93.3%"
+            maxlength="200"
+            show-word-limit
+          >
+          </el-input>
+        </el-form-item>
 
         <el-col :span="24">
           <el-form-item label="">
@@ -28,7 +40,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="文章分类">
-              <el-select v-model="article.typeId" placeholder="请选择分类" style="width: 92%;" @change="getTypeName">
+              <el-select v-model="article.typeId" placeholder="请选择分类" style="width: 90%;" @change="getTypeName">
                 <el-option v-for="item in articleTypeList" :key="item.typeId" :label="item.typeName" :value="item.typeId"></el-option>
               </el-select>
             </el-form-item>
@@ -36,15 +48,15 @@
 
           <el-col :span="12">
             <el-form-item label="文章标签">
-              <el-select style="width: 92%;"
-                v-model="article.tag"
+              <el-select style="width: 90%;"
+                v-model="articleTagList"
                 multiple
                 filterable
                 allow-create
                 default-first-option
                 placeholder="请选择文章标签（输入可添加新标签）">
                 <el-option
-                  v-for="item in articleTypeList"
+                  v-for="item in articleTagList"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value">
@@ -108,16 +120,18 @@ export default {
         isClear: false,
         timingDialog: false,    //定时发布弹窗
         articleTypeList: [],
+        articleTagList: [],
         article:{
             articleTitle: '',
             articleAuthor: '',
+            articleInfo: '',
             articleContent: '',
             typeId: '',
             typeName: '',
-            userId: '',
+            tagId: '',  
+            tagName: '',
             issueTime: '',
-            isDelayIssue: '1',
-            isIssue: '0'
+            issueStatus: ''
           },
           articleRules:{
             articleTitle: [{required: true, trigger: 'blur', message: "请输入文章标题"}],
@@ -137,20 +151,33 @@ export default {
           }
         })
       },
+      //格式化时间
+      formatTime(now){
+        // let now = new Date();
+        let year = now.getFullYear();
+        let month = now.getMonth() > 8 ? (now.getMonth() + 1) : ("0" + (now.getMonth() + 1));
+        let day = now.getDate() > 9 ? now.getDate() : ( "0" + now.getDate());
+        let hour = now.getHours() > 9 ? now.getHours() : ( "0" + now.getHours());
+        let minute = now.getMinutes() > 9 ? now.getMinutes() : ( "0" + now.getMinutes());
+        let second = now.getSeconds() > 9 ? now.getSeconds() : ( "0" + now.getSeconds());
+        return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+      },
       getArticleTypeList(){
-                this.api({
-                    url: "/article/type/articleTypeList",
-                    method: "get",
-                    params: {
-                      pageNum: 1,//页码
-                      pageRow: 20,//每页条数
-                    }
-                }).then(res => {
-                    this.articleTypeList = res.data.list;
-                })
+            this.api({
+                url: "/article/type/articleTypeList",
+                method: "get",
+                params: {
+                  pageNum: 1,//页码
+                  pageRow: 20,//每页条数
+                }
+            }).then(res => {
+                this.articleTypeList = res.data.list;
+            })
         },
       //保存文章请求
        addArticle(msg){
+        debugger;
+        this.article.tagName = this.articleTagList.join(',');
         this.$refs.article.validate(valid => {
           if(valid) {
             this.api({
@@ -160,7 +187,7 @@ export default {
               data: this.article
             }).then(res=> {
               //发布后清空article对象
-              if(!(this.article.isIssue == 1 && this.article.isDelayIssue == 1)){
+              if(this.article.issueStatus !== 3){
                 for(let key in this.article){
                   this.article[key]  = ''
                 }
@@ -174,7 +201,7 @@ export default {
           }else{
             this.$message({
                 showClose: true,
-                message: "碧桃",
+                message: "必填",
                 type: 'error'
               });
             return false;
@@ -183,9 +210,8 @@ export default {
       },
       //发布文章
       publishArticle(){
-        this.article.issueTime = new Date();
-        this.article.isIssue = 0;
-        this.article.isDelayIssue = 1;
+        this.article.issueTime = this.formatTime(new Date());
+        this.article.issueStatus = 1;
         this.addArticle("发布成功");
       },
       //定时发布
@@ -212,14 +238,14 @@ export default {
           })
           return;
         }
-        this.article.isDelayIssue = 0;
-        this.article.isIssue = 1;
+        this.article.issueTime = this.formatTime(this.article.issueTime);
+        this.article.issueStatus = 2;
         this.addArticle("定时发布成功");
         this.timingDialog = false;
       },
+      //保存草稿
       saveDraft(){
-        this.article.isIssue = 1;
-        this.article.isDelayIssue = 1;
+        this.article.issueStatus = 3;
         this.addArticle("保存成功");
       }
     }
