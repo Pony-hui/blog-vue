@@ -49,7 +49,7 @@
           <el-col :span="12">
             <el-form-item label="文章标签">
               <el-select style="width: 90%;"
-                v-model="articleTagList"
+                v-model="selectedTagList"
                 multiple
                 filterable
                 allow-create
@@ -57,9 +57,9 @@
                 placeholder="请选择文章标签（输入可添加新标签）">
                 <el-option
                   v-for="item in articleTagList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
+                  :key="item.tagId"
+                  :label="item.tagName"
+                  :value="item.tagId">
                 </el-option>
               </el-select>
             </el-form-item>
@@ -121,6 +121,7 @@ export default {
         timingDialog: false,    //定时发布弹窗
         articleTypeList: [],
         articleTagList: [],
+        selectedTagList: [],
         article:{
             articleTitle: '',
             articleAuthor: '',
@@ -133,6 +134,7 @@ export default {
             issueTime: '',
             issueStatus: ''
           },
+          tags: [],
           articleRules:{
             articleTitle: [{required: true, trigger: 'blur', message: "请输入文章标题"}],
             articleAuthor: [{required: true, trigger: 'blur', message: "请输入作者"}],
@@ -141,7 +143,10 @@ export default {
         }
       },
       created() {
+        //获取分类信息
         this.getArticleTypeList();
+        //获取标签信息
+        this.getArticleTagList();
       },
     methods: {
       getTypeName(e){
@@ -150,6 +155,30 @@ export default {
             this.article.typeName = item.typeName;
           }
         })
+      },
+      getTagName(selectedTagList){
+          var articleTagList = JSON.parse(JSON.stringify(this.articleTagList));
+          selectedTagList.forEach(item => {
+            // debugger;
+            let tagObj = {
+              tagId: 0,
+              tagName: ''
+            };
+            if(typeof item == 'number'){
+              tagObj.tagId = articleTagList.find(tag => tag.tagId === item).tagId;
+              tagObj.tagName = articleTagList.find(tag => tag.tagId === item).tagName;
+              this.tags.push(tagObj);
+            }else{
+              tagObj.tagName = selectedTagList;
+              this.tags.push(tagObj);
+            }
+          });
+          console.log(this.tags);
+          // for(let i = 0; i <= e.length ; i++){
+          //  if(typeof e[i] === Number) {
+          //    articleTagList.find(tag => tag.typeId === e[0]);
+          //  }
+          // }
       },
       //格式化时间
       formatTime(now){
@@ -174,17 +203,36 @@ export default {
                 this.articleTypeList = res.data.list;
             })
         },
+      //获取类别列表
+      getArticleTagList(){
+          this.api({
+              url: "/article/tag/articleTagList",
+              method: "post",
+              params: {
+                  pageNum: 1,//页码
+                  pageRow: 200,//每页条数
+                }
+          }).then(res => {
+              this.articleTagList = res.data.list;
+              this.total = res.data.total;
+          })
+       },
       //保存文章请求
        addArticle(msg){
-        debugger;
-        this.article.tagName = this.articleTagList.join(',');
+        // this.article.tagName = this.selectedTagList.join(',');
+        this.getTagName(this.selectedTagList);
+        var data = {
+          article: this.article,
+          tags: this.tags
+        };
+        this.selectedTagList = [];
         this.$refs.article.validate(valid => {
           if(valid) {
             this.api({
               method: 'post',
               url: '/article/addArticle',
               // async: false,
-              data: this.article
+              data: data
             }).then(res=> {
               //发布后清空article对象
               if(this.article.issueStatus !== 3){

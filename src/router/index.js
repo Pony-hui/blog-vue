@@ -53,6 +53,12 @@ export const asyncRouterMap = [
         name: '文章分类',
         component: _import('article/type'),
         meta: {title: '文章分类', icon: 'write'}
+      },
+      {
+        path: 'tag',
+        name: '标签管理',
+        component: _import('article/tag'),
+        meta: {title: '标签管理', icon: 'write'}
       }
     ]
   },
